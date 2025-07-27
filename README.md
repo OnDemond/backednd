@@ -172,12 +172,6 @@ NestJS backend application with Supabase integration and authentication.
 - `PUT /users/:id` - Update user by ID (protected)
 - `DELETE /users/:id` - Delete user by ID (protected)
 
-### Health & Monitoring
-
-- `GET /health` - Application health check
-- `GET /health/ready` - Readiness probe
-- `GET /health/metrics` - Application metrics (memory, CPU, uptime)
-
 ### Example Usage
 
 **Register:**
