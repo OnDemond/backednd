@@ -13,10 +13,6 @@ interface SupabaseAuthClient {
   signInWithPassword: (params: any) => Promise<any>;
 }
 
-interface SupabaseClient {
-  auth: SupabaseAuthClient;
-}
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,7 +25,7 @@ export class AuthService {
 
     try {
       // Sign up user through the auth client
-      const { data, error } = await (this.supabaseService.getClient() as SupabaseClient).auth.signUp({
+      const { data, error } = await (this.supabaseService.getClient() as unknown as { auth: SupabaseAuthClient }).auth.signUp({
         email,
         password,
         options: {
@@ -52,7 +48,7 @@ export class AuthService {
       }
 
       // For immediate login after registration
-      const { data: sessionData, error: sessionError } = await (this.supabaseService.getClient() as SupabaseClient).auth.signInWithPassword({
+      const { data: sessionData, error: sessionError } = await (this.supabaseService.getClient() as unknown as { auth: SupabaseAuthClient }).auth.signInWithPassword({
         email,
         password,
       });
@@ -88,7 +84,7 @@ export class AuthService {
 
     try {
       // Use auth client for login
-      const { data, error } = await (this.supabaseService.getClient() as SupabaseClient).auth.signInWithPassword({
+      const { data, error } = await (this.supabaseService.getClient() as unknown as { auth: SupabaseAuthClient }).auth.signInWithPassword({
         email,
         password,
       });
