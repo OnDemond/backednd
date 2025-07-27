@@ -18,18 +18,17 @@ export class AuthService {
     const { email, password, firstName, lastName } = registerDto;
 
     try {
-      // Создаем пользователя через signUp
+      // Создаем пользователя через admin API
       const { data, error } = await this.supabaseService
-        .getClient()
-        .auth.signUp({
+        .getAdminClient()
+        .auth.admin.createUser({
           email,
           password,
-          options: {
-            data: {
-              firstName: firstName || '',
-              lastName: lastName || '',
-            },
+          user_metadata: {
+            firstName: firstName || '',
+            lastName: lastName || '',
           },
+          email_confirm: true,
         });
 
       if (error) {
@@ -69,6 +68,7 @@ export class AuthService {
     const { email, password } = loginDto;
 
     try {
+      // Используем обычный клиент для входа
       const { data, error } = await this.supabaseService
         .getClient()
         .auth.signInWithPassword({
