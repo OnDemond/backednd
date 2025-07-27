@@ -7,6 +7,16 @@ import { JwtService } from '@nestjs/jwt';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LoginDto, RegisterDto, AuthResponseDto } from './dto/auth.dto';
 
+// Типы для Supabase Auth
+interface SupabaseAuthClient {
+  signUp: (params: any) => Promise<any>;
+  signInWithPassword: (params: any) => Promise<any>;
+}
+
+interface SupabaseClient {
+  auth: SupabaseAuthClient;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,22 +28,20 @@ export class AuthService {
     const { email, password, firstName, lastName } = registerDto;
 
     try {
-      // Создаем пользователя через обычный клиент
-      const { data, error } = await this.supabaseService
-        .getClient()
-        .auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              firstName: firstName || '',
-              lastName: lastName || '',
-            },
+      // Sign up user through the auth client
+      const { data, error } = await (this.supabaseService.getClient() as SupabaseClient).auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            firstName: firstName || '',
+            lastName: lastName || '',
           },
-        });
+        },
+      });
 
       if (error) {
-        if (error.message.includes('already registered')) {
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           throw new ConflictException('User already exists');
         }
         throw new UnauthorizedException(error.message);
@@ -41,6 +49,16 @@ export class AuthService {
 
       if (!data.user) {
         throw new UnauthorizedException('User creation failed');
+      }
+
+      // For immediate login after registration
+      const { data: sessionData, error: sessionError } = await (this.supabaseService.getClient() as SupabaseClient).auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (sessionError) {
+        throw new UnauthorizedException('Failed to create session');
       }
 
       const accessToken = this.jwtService.sign({
@@ -69,13 +87,11 @@ export class AuthService {
     const { email, password } = loginDto;
 
     try {
-      // Используем обычный клиент для входа
-      const { data, error } = await this.supabaseService
-        .getClient()
-        .auth.signInWithPassword({
-          email,
-          password,
-        });
+      // Use auth client for login
+      const { data, error } = await (this.supabaseService.getClient() as SupabaseClient).auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error) {
         throw new UnauthorizedException('Invalid credentials');
@@ -105,7 +121,7 @@ export class AuthService {
 
   async validateUser(userId: string) {
     try {
-      // Получаем пользователя через admin API
+      // Get user through admin API
       const { data, error } = await this.supabaseService
         .getAdminClient()
         .from('users')
@@ -127,4 +143,4 @@ export class AuthService {
       throw new UnauthorizedException('User validation failed');
     }
   }
-} 
+}
