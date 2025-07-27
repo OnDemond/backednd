@@ -18,6 +18,7 @@ export class AuthService {
     const { email, password, firstName, lastName } = registerDto;
 
     try {
+      // Создаем пользователя через admin API
       const { data, error } = await this.supabaseService
         .getAdminClient()
         .auth.admin.createUser({
@@ -84,8 +85,8 @@ export class AuthService {
         user: {
           id: data.user.id,
           email: data.user.email || '',
-          firstName: data.user.user_metadata?.firstName,
-          lastName: data.user.user_metadata?.lastName,
+          firstName: data.user.user_metadata?.firstName || '',
+          lastName: data.user.user_metadata?.lastName || '',
         },
       };
     } catch (error) {
@@ -108,9 +109,9 @@ export class AuthService {
 
       return {
         id: data.user.id,
-        email: data.user.email,
-        firstName: data.user.user_metadata?.firstName,
-        lastName: data.user.user_metadata?.lastName,
+        email: data.user.email || '',
+        firstName: data.user.user_metadata?.firstName || '',
+        lastName: data.user.user_metadata?.lastName || '',
       };
     } catch (error) {
       throw new UnauthorizedException('User validation failed');
