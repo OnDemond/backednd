@@ -2,8 +2,8 @@
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    first_name TEXT,
-    last_name TEXT,
+    first_name TEXT DEFAULT '',
+    last_name TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -29,8 +29,8 @@ BEGIN
     VALUES (
         NEW.id,
         NEW.email,
-        NEW.raw_user_meta_data->>'firstName',
-        NEW.raw_user_meta_data->>'lastName'
+        COALESCE(NEW.raw_user_meta_data->>'firstName', ''),
+        COALESCE(NEW.raw_user_meta_data->>'lastName', '')
     );
     RETURN NEW;
 END;

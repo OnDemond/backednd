@@ -24,8 +24,8 @@ export class AuthService {
           email,
           password,
           user_metadata: {
-            firstName,
-            lastName,
+            firstName: firstName || '',
+            lastName: lastName || '',
           },
           email_confirm: true, // Автоматически подтверждаем email
         });
@@ -47,8 +47,8 @@ export class AuthService {
         user: {
           id: data.user.id,
           email: data.user.email || '',
-          firstName,
-          lastName,
+          firstName: firstName || '',
+          lastName: lastName || '',
         },
       };
     } catch (error) {

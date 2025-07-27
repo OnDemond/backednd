@@ -176,6 +176,15 @@ NestJS backend application with Supabase integration and authentication.
 
 **Register:**
 ```bash
+# Минимальная регистрация (только email и пароль)
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password123"
+  }'
+
+# Полная регистрация с именем и фамилией
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
   -d '{
