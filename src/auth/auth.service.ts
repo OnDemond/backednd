@@ -18,17 +18,18 @@ export class AuthService {
     const { email, password, firstName, lastName } = registerDto;
 
     try {
-      // Создаем пользователя через admin API
+      // Создаем пользователя через signUp
       const { data, error } = await this.supabaseService
-        .getAdminClient()
-        .auth.admin.createUser({
+        .getClient()
+        .auth.signUp({
           email,
           password,
-          user_metadata: {
-            firstName: firstName || '',
-            lastName: lastName || '',
+          options: {
+            data: {
+              firstName: firstName || '',
+              lastName: lastName || '',
+            },
           },
-          email_confirm: true, // Автоматически подтверждаем email
         });
 
       if (error) {
@@ -36,6 +37,10 @@ export class AuthService {
           throw new ConflictException('User already exists');
         }
         throw new UnauthorizedException(error.message);
+      }
+
+      if (!data.user) {
+        throw new UnauthorizedException('User creation failed');
       }
 
       const accessToken = this.jwtService.sign({
@@ -99,19 +104,23 @@ export class AuthService {
 
   async validateUser(userId: string) {
     try {
+      // Получаем пользователя через admin API
       const { data, error } = await this.supabaseService
         .getAdminClient()
-        .auth.admin.getUserById(userId);
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-      if (error || !data.user) {
+      if (error || !data) {
         throw new UnauthorizedException('User not found');
       }
 
       return {
-        id: data.user.id,
-        email: data.user.email || '',
-        firstName: data.user.user_metadata?.firstName || '',
-        lastName: data.user.user_metadata?.lastName || '',
+        id: data.id,
+        email: data.email || '',
+        firstName: data.first_name || '',
+        lastName: data.last_name || '',
       };
     } catch (error) {
       throw new UnauthorizedException('User validation failed');

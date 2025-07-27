@@ -24,20 +24,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     try {
-      // Проверяем пользователя в Supabase
+      // Проверяем пользователя в таблице users
       const { data, error } = await this.supabaseService
         .getAdminClient()
-        .auth.admin.getUserById(payload.sub);
+        .from('users')
+        .select('*')
+        .eq('id', payload.sub)
+        .single();
 
-      if (error || !data.user) {
+      if (error || !data) {
         throw new UnauthorizedException('Invalid token');
       }
 
       return {
-        id: data.user.id,
-        email: data.user.email || '',
-        firstName: data.user.user_metadata?.firstName || '',
-        lastName: data.user.user_metadata?.lastName || '',
+        id: data.id,
+        email: data.email || '',
+        firstName: data.first_name || '',
+        lastName: data.last_name || '',
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
